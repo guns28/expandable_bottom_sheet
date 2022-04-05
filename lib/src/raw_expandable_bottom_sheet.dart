@@ -86,6 +86,8 @@ class ExpandableBottomSheet extends StatefulWidget {
   /// [onIsContractedCallback] will be executed if the extend reaches its minimum.
   final Function()? onIsContractedCallback;
 
+  final Function(DragUpdateDetails)? onDraggingCallback;
+
   /// [enableToggle] will enable tap to toggle option on header.
   final bool enableToggle;
 
@@ -101,6 +103,7 @@ class ExpandableBottomSheet extends StatefulWidget {
     required this.background,
     this.persistentHeader,
     this.persistentFooter,
+    this.onDraggingCallback,
     this.persistentContentHeight = 0.0,
     this.animationCurveExpand = Curves.ease,
     this.animationCurveContract = Curves.ease,
@@ -207,8 +210,7 @@ class ExpandableBottomSheetState extends State<ExpandableBottomSheet>
                 child: GestureDetector(
                   onTap: _toggle,
                   onVerticalDragDown: widget.isDraggable ? _dragDown : (_) {},
-                  onVerticalDragUpdate:
-                      widget.isDraggable ? _dragUpdate : (_) {},
+                  onVerticalDragUpdate: widget.isDraggable ? _dragUpdate : (_) {},
                   onVerticalDragEnd: widget.isDraggable ? _dragEnd : (_) {},
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -262,9 +264,9 @@ class ExpandableBottomSheetState extends State<ExpandableBottomSheet>
     double contentHeight = _contentKey.currentContext!.size!.height;
 
     double checkedPersistentContentHeight =
-        (widget.persistentContentHeight < contentHeight)
-            ? widget.persistentContentHeight
-            : contentHeight;
+    (widget.persistentContentHeight < contentHeight)
+        ? widget.persistentContentHeight
+        : contentHeight;
 
     _minOffset =
         context.size!.height - headerHeight - contentHeight - footerHeight;
@@ -331,8 +333,9 @@ class ExpandableBottomSheetState extends State<ExpandableBottomSheet>
   void _dragUpdate(DragUpdateDetails details) {
     if (!_useDrag) return;
     double offset = details.localPosition.dy;
-    double newOffset =
-        _startPositionAtDragDown! + offset - _startOffsetAtDragDown;
+    widget.onDraggingCallback!(details);
+
+    double newOffset = _startPositionAtDragDown! + offset - _startOffsetAtDragDown;
     if (_minOffset <= newOffset && _maxOffset >= newOffset) {
       setState(() {
         _positionOffset = newOffset;
