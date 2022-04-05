@@ -86,7 +86,9 @@ class ExpandableBottomSheet extends StatefulWidget {
   /// [onIsContractedCallback] will be executed if the extend reaches its minimum.
   final Function()? onIsContractedCallback;
 
-  final Function(DragUpdateDetails)? onDraggingCallback;
+  final Function(DragUpdateDetails) onDraggingCallback;
+
+  final Function() onDraggingEndCallback;
 
   /// [enableToggle] will enable tap to toggle option on header.
   final bool enableToggle;
@@ -103,7 +105,8 @@ class ExpandableBottomSheet extends StatefulWidget {
     required this.background,
     this.persistentHeader,
     this.persistentFooter,
-    this.onDraggingCallback,
+    required this.onDraggingCallback,
+    required this.onDraggingEndCallback,
     this.persistentContentHeight = 0.0,
     this.animationCurveExpand = Curves.ease,
     this.animationCurveContract = Curves.ease,
@@ -142,7 +145,7 @@ class ExpandableBottomSheetState extends State<ExpandableBottomSheet>
 
   bool _useDrag = true;
   bool _callCallbacks = false;
-
+  DragUpdateDetails? detailsPosition;
   /// Expands the content of the widget.
   void expand() {
     _afterUpdateWidgetBuild(false);
@@ -333,8 +336,8 @@ class ExpandableBottomSheetState extends State<ExpandableBottomSheet>
   void _dragUpdate(DragUpdateDetails details) {
     if (!_useDrag) return;
     double offset = details.localPosition.dy;
-    widget.onDraggingCallback!(details);
-
+    ///get drag position
+    widget.onDraggingCallback(details);
     double newOffset = _startPositionAtDragDown! + offset - _startOffsetAtDragDown;
     if (_minOffset <= newOffset && _maxOffset >= newOffset) {
       setState(() {
@@ -355,6 +358,8 @@ class ExpandableBottomSheetState extends State<ExpandableBottomSheet>
   }
 
   void _dragEnd(DragEndDetails details) {
+    ///get end drag notification
+    widget.onDraggingEndCallback();
     if (_startPositionAtDragDown == _positionOffset || !_useDrag) return;
     if (details.primaryVelocity! < -250) {
       //drag up ended with high speed
